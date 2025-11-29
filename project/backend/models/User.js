@@ -32,8 +32,17 @@ const User = sequelize.define('User', {
     }
   },
   role: {
-    type: DataTypes.ENUM('admin', 'manager', 'user'),
-    defaultValue: 'user'
+    type: DataTypes.ENUM('admin', 'chief_accountant', 'branch_manager'),
+    defaultValue: 'branch_manager'
+  },
+  branchId: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    field: 'branch_id',
+    references: {
+      model: 'branches',
+      key: 'id'
+    }
   }
 }, {
   tableName: 'users',

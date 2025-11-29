@@ -187,3 +187,63 @@
     font-weight: bold;
     color: #2d3748;
   }
+  /* Стили для ролей */
+.role-badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.role-admin {
+  background: #fed7d7;
+  color: #c53030;
+}
+
+.role-chief_accountant {
+  background: #c6f6d5;
+  color: #276749;
+}
+
+.role-branch_manager {
+  background: #bee3f8;
+  color: #2c5aa0;
+}
+
+/* Информация о пользователе */
+.user-branch {
+  display: block;
+  font-size: 0.75rem;
+  color: #718096;
+  margin-top: 0.25rem;
+}
+
+/* Заглушки */
+.placeholder-content {
+  margin-top: 2rem;
+}
+
+.placeholder-card {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.placeholder-card h3 {
+  margin-bottom: 1rem;
+  color: #4a5568;
+}
+
+.placeholder-card ul {
+  text-align: left;
+  margin-top: 1.5rem;
+}
+
+.placeholder-card li {
+  margin-bottom: 0.5rem;
+  padding: 0.5rem;
+  background: #f7fafc;
+  border-radius: 4px;
+}

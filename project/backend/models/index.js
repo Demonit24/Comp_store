@@ -14,10 +14,18 @@ Sale.belongsTo(Branch, { foreignKey: 'branchId', as: 'branch' });
 Sale.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
 Branch.belongsTo(User, { foreignKey: 'managerId', as: 'manager' });
+User.belongsTo(Branch, { 
+  foreignKey: 'branchId', 
+  as: 'branch' 
+});
 User.hasMany(Branch, { foreignKey: 'managerId', as: 'managedBranches' });
 
 Product.hasMany(Sale, { foreignKey: 'productId', as: 'sales' });
 Branch.hasMany(Sale, { foreignKey: 'branchId', as: 'sales' });
+Branch.hasMany(User, { 
+  foreignKey: 'branchId', 
+  as: 'managers' 
+});
 User.hasMany(Sale, { foreignKey: 'userId', as: 'sales' });
 
 const models = {
