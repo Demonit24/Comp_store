@@ -7,6 +7,7 @@ import productRoutes from './routes/products.js';
 import branchRoutes from './routes/branches.js';
 import saleRoutes from './routes/sales.js';
 import supplierRoutes from './routes/suppliers.js';
+import adminRoutes from './routes/admin.js';
 
 dotenv.config();
 
@@ -28,6 +29,7 @@ app.use('/api/products', productRoutes);
 app.use('/api/branches', branchRoutes);
 app.use('/api/sales', saleRoutes);
 app.use('/api/suppliers', supplierRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Sync database
 const syncDatabase = async () => {

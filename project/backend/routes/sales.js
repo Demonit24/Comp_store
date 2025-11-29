@@ -7,15 +7,76 @@ import User from '../models/User.js';
 
 const router = express.Router();
 
-// Get all sales
+// Get all sales with filtering and sorting
 router.get('/', authenticateToken, async (req, res) => {
   try {
-    const sales = await Sale.findAll({
+    const { Sale, Product, Branch, User } = req.models;
+    const {
+      productId,
+      branchId,
+      userId,
+      startDate,
+      endDate,
+      minAmount,
+      maxAmount,
+      sortBy = 'sale_date',
+      sortOrder = 'DESC',
+      page = 1,
+      limit = 10
+    } = req.query;
+
+    console.log('GET /api/sales - Start with filters:', req.query);
+
+    // Build where conditions
+    const where = {};
+
+    if (productId) where.productId = productId;
+    if (branchId) where.branchId = branchId;
+    if (userId) where.userId = userId;
+    
+    // Date range filter
+    if (startDate || endDate) {
+      where.saleDate = {};
+      if (startDate) where.saleDate[Op.gte] = new Date(startDate);
+      if (endDate) where.saleDate[Op.lte] = new Date(endDate);
+    }
+    
+    // Amount range filter
+    if (minAmount || maxAmount) {
+      where.totalAmount = {};
+      if (minAmount) where.totalAmount[Op.gte] = parseFloat(minAmount);
+      if (maxAmount) where.totalAmount[Op.lte] = parseFloat(maxAmount);
+    }
+
+    // Build order
+    const order = [];
+    const sortFields = {
+      saleDate: 'sale_date',
+      totalAmount: 'total_amount',
+      quantity: 'quantity',
+      unitPrice: 'unit_price',
+      createdAt: 'created_at'
+    };
+    
+
+    if (sortFields[sortBy]) {
+      order.push([sortFields[sortBy], sortOrder]);
+    } else {
+      order.push(['sale_date', 'DESC']);
+    }
+
+    const offset = (page - 1) * limit;
+
+    console.log('Sales query conditions:', where);
+    console.log('Sort order:', order);
+
+    const { count, rows: sales } = await Sale.findAndCountAll({
+      where,
       include: [
         {
           model: Product,
           as: 'product',
-          attributes: ['id', 'name', 'category']
+          attributes: ['id', 'name', 'category', 'costPrice', 'sellingPrice']
         },
         {
           model: Branch,
@@ -28,12 +89,70 @@ router.get('/', authenticateToken, async (req, res) => {
           attributes: ['id', 'login', 'email']
         }
       ],
-      order: [['sale_date', 'DESC']]
+      limit: parseInt(limit),
+      offset: parseInt(offset),
+      order: [order]
     });
-    
-    res.json(sales);
+
+    console.log(`Found ${count} sales, returning ${sales.length}`);
+
+    // Calculate additional metrics
+    const salesWithMetrics = sales.map(sale => {
+      const saleJSON = sale.toJSON();
+      const profit = sale.quantity * (sale.product.sellingPrice - sale.product.costPrice);
+      const profitability = sale.product.costPrice > 0 ? 
+        (profit / (sale.quantity * sale.product.costPrice) * 100).toFixed(2) : 0;
+
+      return {
+        ...saleJSON,
+        profit: parseFloat(profit.toFixed(2)),
+        profitability: parseFloat(profitability)
+      };
+    });
+
+    res.json({
+      sales: salesWithMetrics,
+      totalPages: Math.ceil(count / limit),
+      currentPage: parseInt(page),
+      total: count
+    });
+
   } catch (error) {
     console.error('Error loading sales:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Get sales statistics for filters
+router.get('/filters-data', authenticateToken, async (req, res) => {
+  try {
+    const { Sale, Product, Branch, User } = req.models;
+    
+    // Get available products
+    const products = await Product.findAll({
+      attributes: ['id', 'name'],
+      limit: 50
+    });
+
+    // Get available branches
+    const branches = await Branch.findAll({
+      attributes: ['id', 'name']
+    });
+
+    // Get available users
+    const users = await User.findAll({
+      attributes: ['id', 'login'],
+      limit: 50
+    });
+
+    res.json({
+      products,
+      branches,
+      users
+    });
+
+  } catch (error) {
+    console.error('Error loading sales filter data:', error);
     res.status(500).json({ message: error.message });
   }
 });
