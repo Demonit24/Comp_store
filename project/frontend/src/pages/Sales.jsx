@@ -33,6 +33,7 @@ const Sales = () => {
   const loadSales = async () => {
     try {
       setLoading(true);
+      setError('');
       
       // Объединяем фильтры и сортировку в параметры запроса
       const params = {
@@ -42,13 +43,26 @@ const Sales = () => {
         limit: 100
       };
 
-      console.log('Loading sales with params:', params); // Для отладки
+      console.log('Loading sales with params:', params);
 
       const response = await salesAPI.getAll(params);
-      setSales(response.data.sales || response.data); // Учитываем оба формата ответа
+      
+      // Обрабатываем оба возможных формата ответа
+      let salesData = [];
+      if (response.data && response.data.sales) {
+        salesData = response.data.sales; // Новый формат с пагинацией
+      } else if (Array.isArray(response.data)) {
+        salesData = response.data; // Старый формат - массив
+      }
+      
+      console.log('Loaded sales:', salesData.length);
+      setSales(salesData);
     } catch (error) {
       console.error('Error loading sales:', error);
-      setError('Не удалось загрузить продажи');
+      const errorMessage = error.response?.data?.message || 
+                           error.message || 
+                           'Не удалось загрузить продажи';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -82,6 +96,7 @@ const Sales = () => {
     setSort(newSort);
   };
 
+  // Остальные методы без изменений...
   const handleAddSale = () => {
     setEditingSale(null);
     setFormData({
@@ -189,10 +204,11 @@ const Sales = () => {
 
       {/* Панель фильтров */}
       <SalesFilters 
-        filters={filters}
-        onFiltersChange={handleFiltersChange}
-        onSortChange={handleSortChange}
-      />
+  filters={filters}
+  onFiltersChange={handleFiltersChange}
+  sort={sort}
+  onSortChange={handleSortChange}
+/>
 
       <div className="table-container">
         <table className="data-table">

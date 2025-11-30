@@ -118,8 +118,14 @@
   
   .sidebar nav ul {
     list-style: none;
+    text-decoration-color: #4299e1;
   }
-  
+  .nav-menu a {
+    color: #4299e1;
+  }
+  .nav-menu a.active {
+    color: #3dcbd8;
+  }
   .sidebar nav a {
     display: block;
     color: white;

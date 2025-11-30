@@ -51,7 +51,7 @@ export const salesAPI = {
   create: (data) => api.post('/sales', data),
   update: (id, data) => api.put(`/sales/${id}`, data),
   delete: (id) => api.delete(`/sales/${id}`),
-  getFiltersData: () => api.get('/sales/filters-data'), // новый метод
+  getFiltersData: () => api.get('/sales/filters-data'),
 };
 
 // Suppliers API

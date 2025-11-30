@@ -1,29 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { salesAPI } from '../services/api';
 
-const SalesFilters = ({ filters, onFiltersChange, onSortChange }) => {
+const SalesFilters = ({ filters, onFiltersChange, sort, onSortChange }) => {
   const [filterData, setFilterData] = useState({
     products: [],
     branches: [],
     users: []
   });
-  const [localFilters, setLocalFilters] = useState({
-    productId: '',
-    branchId: '',
-    userId: '',
-    startDate: '',
-    endDate: '',
-    minAmount: '',
-    maxAmount: ''
-  });
-  const [sort, setSort] = useState({
-    sortBy: 'sale_date',
-    sortOrder: 'DESC'
-  });
+  const [localFilters, setLocalFilters] = useState(filters || {});
+  const [localSort, setLocalSort] = useState(sort || {});
 
   useEffect(() => {
     loadFilterData();
   }, []);
+
+  // Синхронизируем локальное состояние с props
+  useEffect(() => {
+    setLocalFilters(filters || {});
+  }, [filters]);
+
+  useEffect(() => {
+    setLocalSort(sort || {});
+  }, [sort]);
 
   const loadFilterData = async () => {
     try {
@@ -45,10 +43,10 @@ const SalesFilters = ({ filters, onFiltersChange, onSortChange }) => {
 
   const handleSortChange = (key, value) => {
     const newSort = {
-      ...sort,
+      ...localSort,
       [key]: value
     };
-    setSort(newSort);
+    setLocalSort(newSort);
     onSortChange(newSort);
   };
 
@@ -62,8 +60,15 @@ const SalesFilters = ({ filters, onFiltersChange, onSortChange }) => {
       minAmount: '',
       maxAmount: ''
     };
+    const clearedSort = {
+      sortBy: 'sale_date',
+      sortOrder: 'DESC'
+    };
+    
     setLocalFilters(clearedFilters);
+    setLocalSort(clearedSort);
     onFiltersChange(clearedFilters);
+    onSortChange(clearedSort);
   };
 
   return (
@@ -80,7 +85,7 @@ const SalesFilters = ({ filters, onFiltersChange, onSortChange }) => {
         <div className="filter-group">
           <label>Товар:</label>
           <select
-            value={localFilters.productId}
+            value={localFilters.productId || ''}
             onChange={(e) => handleFilterChange('productId', e.target.value)}
           >
             <option value="">Все товары</option>
@@ -96,7 +101,7 @@ const SalesFilters = ({ filters, onFiltersChange, onSortChange }) => {
         <div className="filter-group">
           <label>Филиал:</label>
           <select
-            value={localFilters.branchId}
+            value={localFilters.branchId || ''}
             onChange={(e) => handleFilterChange('branchId', e.target.value)}
           >
             <option value="">Все филиалы</option>
@@ -112,7 +117,7 @@ const SalesFilters = ({ filters, onFiltersChange, onSortChange }) => {
         <div className="filter-group">
           <label>Продавец:</label>
           <select
-            value={localFilters.userId}
+            value={localFilters.userId || ''}
             onChange={(e) => handleFilterChange('userId', e.target.value)}
           >
             <option value="">Все продавцы</option>
@@ -129,7 +134,7 @@ const SalesFilters = ({ filters, onFiltersChange, onSortChange }) => {
           <label>Дата с:</label>
           <input
             type="date"
-            value={localFilters.startDate}
+            value={localFilters.startDate || ''}
             onChange={(e) => handleFilterChange('startDate', e.target.value)}
           />
         </div>
@@ -138,7 +143,7 @@ const SalesFilters = ({ filters, onFiltersChange, onSortChange }) => {
           <label>Дата по:</label>
           <input
             type="date"
-            value={localFilters.endDate}
+            value={localFilters.endDate || ''}
             onChange={(e) => handleFilterChange('endDate', e.target.value)}
           />
         </div>
@@ -148,10 +153,11 @@ const SalesFilters = ({ filters, onFiltersChange, onSortChange }) => {
           <label>Сумма от:</label>
           <input
             type="number"
-            value={localFilters.minAmount}
+            value={localFilters.minAmount || ''}
             onChange={(e) => handleFilterChange('minAmount', e.target.value)}
             placeholder="Мин. сумма"
             min="0"
+            step="0.01"
           />
         </div>
 
@@ -159,10 +165,11 @@ const SalesFilters = ({ filters, onFiltersChange, onSortChange }) => {
           <label>Сумма до:</label>
           <input
             type="number"
-            value={localFilters.maxAmount}
+            value={localFilters.maxAmount || ''}
             onChange={(e) => handleFilterChange('maxAmount', e.target.value)}
             placeholder="Макс. сумма"
             min="0"
+            step="0.01"
           />
         </div>
 
@@ -170,7 +177,7 @@ const SalesFilters = ({ filters, onFiltersChange, onSortChange }) => {
         <div className="filter-group">
           <label>Сортировать по:</label>
           <select
-            value={sort.sortBy}
+            value={localSort.sortBy || 'sale_date'}
             onChange={(e) => handleSortChange('sortBy', e.target.value)}
           >
             <option value="sale_date">Дате продажи</option>
@@ -185,7 +192,7 @@ const SalesFilters = ({ filters, onFiltersChange, onSortChange }) => {
         <div className="filter-group">
           <label>Порядок:</label>
           <select
-            value={sort.sortOrder}
+            value={localSort.sortOrder || 'DESC'}
             onChange={(e) => handleSortChange('sortOrder', e.target.value)}
           >
             <option value="DESC">По убыванию</option>

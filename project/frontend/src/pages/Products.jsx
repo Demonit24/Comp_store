@@ -54,10 +54,11 @@ const Products = () => {
 
       {/* Панель фильтров */}
       <ProductFilters 
-        filters={filters}
-        onFiltersChange={handleFiltersChange}
-        onSortChange={handleSortChange}
-      />
+  filters={filters}
+  onFiltersChange={handleFiltersChange}
+  sort={sort}
+  onSortChange={handleSortChange}
+/>
 
       {/* Список товаров с передачей фильтров и сортировки */}
       <ProductList

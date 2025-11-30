@@ -1,24 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { productsAPI } from '../services/api';
 
-const ProductFilters = ({ filters, onFiltersChange, onSortChange }) => {
+const ProductFilters = ({ filters, onFiltersChange, sort, onSortChange }) => {
   const [categories, setCategories] = useState([]);
-  const [localFilters, setLocalFilters] = useState({
-    category: '',
-    name: '',
-    minPrice: '',
-    maxPrice: '',
-    inStock: '',
-    supplierId: ''
-  });
-  const [sort, setSort] = useState({
-    sortBy: 'created_at',
-    sortOrder: 'DESC'
-  });
+  const [localFilters, setLocalFilters] = useState(filters || {});
+  const [localSort, setLocalSort] = useState(sort || {});
 
   useEffect(() => {
     loadCategories();
   }, []);
+
+  // Синхронизируем локальное состояние с props
+  useEffect(() => {
+    setLocalFilters(filters || {});
+  }, [filters]);
+
+  useEffect(() => {
+    setLocalSort(sort || {});
+  }, [sort]);
 
   const loadCategories = async () => {
     try {
@@ -40,10 +39,10 @@ const ProductFilters = ({ filters, onFiltersChange, onSortChange }) => {
 
   const handleSortChange = (key, value) => {
     const newSort = {
-      ...sort,
+      ...localSort,
       [key]: value
     };
-    setSort(newSort);
+    setLocalSort(newSort);
     onSortChange(newSort);
   };
 
@@ -56,8 +55,15 @@ const ProductFilters = ({ filters, onFiltersChange, onSortChange }) => {
       inStock: '',
       supplierId: ''
     };
+    const clearedSort = {
+      sortBy: 'created_at',
+      sortOrder: 'DESC'
+    };
+    
     setLocalFilters(clearedFilters);
+    setLocalSort(clearedSort);
     onFiltersChange(clearedFilters);
+    onSortChange(clearedSort);
   };
 
   return (
@@ -75,7 +81,7 @@ const ProductFilters = ({ filters, onFiltersChange, onSortChange }) => {
           <label>Название товара:</label>
           <input
             type="text"
-            value={localFilters.name}
+            value={localFilters.name || ''}
             onChange={(e) => handleFilterChange('name', e.target.value)}
             placeholder="Введите название..."
           />
@@ -85,7 +91,7 @@ const ProductFilters = ({ filters, onFiltersChange, onSortChange }) => {
         <div className="filter-group">
           <label>Категория:</label>
           <select
-            value={localFilters.category}
+            value={localFilters.category || ''}
             onChange={(e) => handleFilterChange('category', e.target.value)}
           >
             <option value="">Все категории</option>
@@ -102,10 +108,11 @@ const ProductFilters = ({ filters, onFiltersChange, onSortChange }) => {
           <label>Цена от:</label>
           <input
             type="number"
-            value={localFilters.minPrice}
+            value={localFilters.minPrice || ''}
             onChange={(e) => handleFilterChange('minPrice', e.target.value)}
             placeholder="Мин. цена"
             min="0"
+            step="0.01"
           />
         </div>
 
@@ -113,10 +120,11 @@ const ProductFilters = ({ filters, onFiltersChange, onSortChange }) => {
           <label>Цена до:</label>
           <input
             type="number"
-            value={localFilters.maxPrice}
+            value={localFilters.maxPrice || ''}
             onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
             placeholder="Макс. цена"
             min="0"
+            step="0.01"
           />
         </div>
 
@@ -124,7 +132,7 @@ const ProductFilters = ({ filters, onFiltersChange, onSortChange }) => {
         <div className="filter-group">
           <label>Наличие:</label>
           <select
-            value={localFilters.inStock}
+            value={localFilters.inStock || ''}
             onChange={(e) => handleFilterChange('inStock', e.target.value)}
           >
             <option value="">Все</option>
@@ -137,14 +145,14 @@ const ProductFilters = ({ filters, onFiltersChange, onSortChange }) => {
         <div className="filter-group">
           <label>Сортировать по:</label>
           <select
-            value={sort.sortBy}
+            value={localSort.sortBy || 'created_at'}
             onChange={(e) => handleSortChange('sortBy', e.target.value)}
           >
-            {/*<option value="created_at">Дате добавления</option>*/}
+            <option value="created_at">Дате добавления</option>
             <option value="name">Названию</option>
             <option value="sellingPrice">Цене</option>
-            {/*<option value="profitMargin">Марже</option>*/}
-            {/*<option value="profitability">Рентабельности</option>*/}
+            <option value="profitMargin">Марже</option>
+            <option value="profitability">Рентабельности</option>
             <option value="quantity">Количеству</option>
           </select>
         </div>
@@ -152,7 +160,7 @@ const ProductFilters = ({ filters, onFiltersChange, onSortChange }) => {
         <div className="filter-group">
           <label>Порядок:</label>
           <select
-            value={sort.sortOrder}
+            value={localSort.sortOrder || 'DESC'}
             onChange={(e) => handleSortChange('sortOrder', e.target.value)}
           >
             <option value="DESC">По убыванию</option>
