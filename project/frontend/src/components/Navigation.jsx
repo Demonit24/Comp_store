@@ -76,12 +76,29 @@ const Navigation = () => {
 
         {/* Меню для менеджера филиала */}
         {user.role === 'branch_manager' && (
-          <li>
-            <NavLink to="/branch-manager" className={({ isActive }) => isActive ? 'active' : ''}>
-              🏪 Панель менеджера
-            </NavLink>
-          </li>
-        )}
+  <>
+    <li>
+      <NavLink to="/branch-manager" className={({ isActive }) => isActive ? 'active' : ''}>
+        🏪 Панель менеджера
+      </NavLink>
+    </li>
+    <li>
+      <NavLink to="/branch-sales" className={({ isActive }) => isActive ? 'active' : ''}>
+        🛒 Продажи филиала
+      </NavLink>
+    </li>
+    <li>
+      <NavLink to="/branch-view" className={({ isActive }) => isActive ? 'active' : ''}>
+        🏢 Мой филиал
+      </NavLink>
+    </li>
+    <li>
+      <NavLink to="/products" className={({ isActive }) => isActive ? 'active' : ''}>
+        📦 Товары
+      </NavLink>
+    </li>
+  </>
+)}
 
         {/* Общее меню для всех ролей */}
         <li>

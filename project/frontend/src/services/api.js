@@ -52,6 +52,7 @@ export const salesAPI = {
   update: (id, data) => api.put(`/sales/${id}`, data),
   delete: (id) => api.delete(`/sales/${id}`),
   getFiltersData: () => api.get('/sales/filters-data'),
+  getBranchStats: (branchId) => api.get(`/sales/branch-stats/${branchId}`), // новый метод
 };
 
 // Suppliers API

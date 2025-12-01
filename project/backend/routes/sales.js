@@ -23,10 +23,19 @@ router.get('/', authenticateToken, async (req, res) => {
     } = req.query;
 
     console.log('GET /api/sales - Start with filters:', req.query);
+    console.log('GET /api/sales - User role:', req.user.role, 'Branch ID:', req.user.branchId);
 
+    
     // Build where conditions - аналогично products
     const where = {};
     
+    // Автоматическая фильтрация для менеджера филиала
+    let finalBranchId = branchId;
+    if (req.user.role === 'branch_manager' && req.user.branchId) {
+      finalBranchId = req.user.branchId;
+      console.log('Manager access - filtering by branch:', finalBranchId);
+    }
+
     if (productId) where.productId = productId;
     if (branchId) where.branchId = branchId;
     if (userId) where.userId = userId;
@@ -163,9 +172,24 @@ router.get('/filters-data', authenticateToken, async (req, res) => {
 router.post('/', authenticateToken, async (req, res) => {
   try {
     const { productId, branchId, quantity, unitPrice } = req.body;
-    const { Sale, Product, Branch } = req.models;
+    const { Sale, Product, Branch, User } = req.models; // Добавляем User
 
-    console.log('Creating sale with data:', { productId, branchId, quantity, unitPrice });
+    console.log('Creating sale - User role:', req.user.role, 'User branchId:', req.user.branchId);
+    console.log('Request body:', req.body);
+
+    // Определяем finalBranchId
+    let finalBranchId = branchId;
+    
+    // Для менеджера филиала используем его branchId
+    if (req.user.role === 'branch_manager') {
+      finalBranchId = req.user.branchId;
+      console.log('Manager sale - using branchId:', finalBranchId);
+    }
+
+    // Проверяем, что finalBranchId определен
+    if (!finalBranchId) {
+      return res.status(400).json({ message: 'Не указан филиал для продажи' });
+    }
 
     // Проверяем существование товара
     const product = await Product.findByPk(productId);
@@ -174,10 +198,13 @@ router.post('/', authenticateToken, async (req, res) => {
     }
 
     // Проверяем существование филиала
-    const branch = await Branch.findByPk(branchId);
+    const branch = await Branch.findByPk(finalBranchId);
     if (!branch) {
-      return res.status(404).json({ message: 'Филиал не найден' });
+      console.log('Branch not found with ID:', finalBranchId);
+      return res.status(404).json({ message: `Филиал с ID ${finalBranchId} не найден` });
     }
+
+    console.log('Found branch:', branch.name);
 
     // Проверяем количество товара
     if (product.quantity < quantity) {
@@ -187,11 +214,12 @@ router.post('/', authenticateToken, async (req, res) => {
     // Создаем продажу
     const sale = await Sale.create({
       productId,
-      branchId,
+      branchId: finalBranchId,
       userId: req.user.id,
       quantity,
       unitPrice,
-      totalAmount: quantity * unitPrice
+      totalAmount: quantity * unitPrice,
+      saleDate: new Date()
     });
 
     // Обновляем количество товара
@@ -213,13 +241,14 @@ router.post('/', authenticateToken, async (req, res) => {
           attributes: ['id', 'name']
         },
         {
-          model: User,
+          model: User, // Теперь User определен
           as: 'user',
           attributes: ['id', 'login', 'email']
         }
       ]
     });
 
+    console.log('Sale created successfully:', createdSale.id);
     res.status(201).json(createdSale);
   } catch (error) {
     console.error('Error creating sale:', error);
@@ -323,6 +352,62 @@ router.delete('/:id', authenticateToken, async (req, res) => {
     res.json({ message: 'Продажа удалена успешно' });
   } catch (error) {
     console.error('Error deleting sale:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Get branch statistics
+router.get('/branch-stats/:branchId', authenticateToken, async (req, res) => {
+  try {
+    const { Sale, Product } = req.models;
+    const { branchId } = req.params;
+    
+    console.log('Getting stats for branch:', branchId);
+
+    // Проверяем права доступа для менеджера филиала
+    if (req.user.role === 'branch_manager' && parseInt(branchId) !== parseInt(req.user.branchId)) {
+      return res.status(403).json({ message: 'Доступ запрещен к статистике другого филиала' });
+    }
+
+    // Получаем все продажи филиала
+    const sales = await Sale.findAll({
+      where: { branchId },
+      include: [{
+        model: Product,
+        as: 'product',
+        attributes: ['id', 'name', 'costPrice']
+      }]
+    });
+
+    // Рассчитываем статистику
+    const today = new Date().toISOString().split('T')[0];
+    const todaySales = sales.filter(sale => {
+      if (!sale.saleDate) return false;
+      const saleDate = new Date(sale.saleDate).toISOString().split('T')[0];
+      return saleDate === today;
+    });
+
+    const totalRevenue = sales.reduce((sum, sale) => sum + parseFloat(sale.totalAmount || 0), 0);
+    const todayRevenue = todaySales.reduce((sum, sale) => sum + parseFloat(sale.totalAmount || 0), 0);
+
+    // Рассчитываем прибыль
+    const totalProfit = sales.reduce((sum, sale) => {
+      const cost = sale.product ? parseFloat(sale.product.costPrice) * sale.quantity : 0;
+      const revenue = parseFloat(sale.totalAmount);
+      return sum + (revenue - cost);
+    }, 0);
+
+    res.json({
+      todaySales: todaySales.length,
+      todayRevenue,
+      totalSales: sales.length,
+      totalRevenue,
+      totalProfit: totalProfit.toFixed(2),
+      averageSale: sales.length > 0 ? (totalRevenue / sales.length).toFixed(2) : 0
+    });
+
+  } catch (error) {
+    console.error('Error loading branch stats:', error);
     res.status(500).json({ message: error.message });
   }
 });
