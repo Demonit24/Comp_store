@@ -344,6 +344,124 @@
   margin-left: 0.5rem;
 }
 
+/* Кнопки экспорта */
+.export-buttons {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.export-buttons button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+}
+
+/* Контейнер для графиков */
+.charts-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+  gap: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.chart-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.chart-card h3 {
+  margin-bottom: 1rem;
+  color: #2d3748;
+}
+
+.chart-card.full-width {
+  grid-column: 1 / -1;
+}
+
+/* Адаптивность для графиков */
+@media (max-width: 768px) {
+  .charts-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .chart-card canvas {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  .export-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .export-buttons button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Индикатор загрузки экспорта */
+.export-loading {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255,255,255,.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 1s ease-in-out infinite;
+  margin-right: 0.5rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Стили для таблиц в экспорте */
+.export-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+.export-table th,
+.export-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.export-table th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+}
+
+/* Стили для печати */
+@media print {
+  .sidebar,
+  .export-buttons,
+  .action-buttons {
+    display: none !important;
+  }
+  
+  .main-content {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+  
+  .chart-card canvas {
+    max-width: 100% !important;
+    page-break-inside: avoid;
+  }
+  
+  .data-table {
+    page-break-inside: avoid;
+  }
+}
+
 /* Адаптивность */
 @media (max-width: 768px) {
   .manager-content {

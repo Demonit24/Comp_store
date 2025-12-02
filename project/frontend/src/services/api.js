@@ -63,4 +63,7 @@ export const suppliersAPI = {
   delete: (id) => api.delete(`/suppliers/${id}`),
 };
 
+export const dashboardAPI = {
+  getStats: () => api.get('/dashboard/stats'),
+};
 export default api;

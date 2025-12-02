@@ -8,6 +8,8 @@ import branchRoutes from './routes/branches.js';
 import saleRoutes from './routes/sales.js';
 import supplierRoutes from './routes/suppliers.js';
 import adminRoutes from './routes/admin.js';
+import dashboardRoutes from './routes/dashboard.js';
+
 
 dotenv.config();
 
@@ -30,6 +32,7 @@ app.use('/api/branches', branchRoutes);
 app.use('/api/sales', saleRoutes);
 app.use('/api/suppliers', supplierRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Sync database
 const syncDatabase = async () => {
