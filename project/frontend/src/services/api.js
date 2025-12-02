@@ -66,4 +66,5 @@ export const suppliersAPI = {
 export const dashboardAPI = {
   getStats: () => api.get('/dashboard/stats'),
 };
+
 export default api;
