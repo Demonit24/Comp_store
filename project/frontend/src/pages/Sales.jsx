@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { salesAPI, productsAPI, branchesAPI } from '../services/api';
+import SalesFilters from '../components/SalesFilters';
 
 const Sales = () => {
   const [sales, setSales] = useState([]);
@@ -9,6 +10,8 @@ const Sales = () => {
   const [error, setError] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingSale, setEditingSale] = useState(null);
+  const [filters, setFilters] = useState({});
+  const [sort, setSort] = useState({});
   const [formData, setFormData] = useState({
     productId: '',
     branchId: '',
@@ -22,13 +25,44 @@ const Sales = () => {
     loadBranches();
   }, []);
 
+  // Добавляем эффект для перезагрузки продаж при изменении фильтров или сортировки
+  useEffect(() => {
+    loadSales();
+  }, [filters, sort]);
+
   const loadSales = async () => {
     try {
       setLoading(true);
-      const response = await salesAPI.getAll();
-      setSales(response.data);
+      setError('');
+      
+      // Объединяем фильтры и сортировку в параметры запроса
+      const params = {
+        ...filters,
+        ...sort,
+        page: 1,
+        limit: 100
+      };
+
+      console.log('Loading sales with params:', params);
+
+      const response = await salesAPI.getAll(params);
+      
+      // Обрабатываем оба возможных формата ответа
+      let salesData = [];
+      if (response.data && response.data.sales) {
+        salesData = response.data.sales; // Новый формат с пагинацией
+      } else if (Array.isArray(response.data)) {
+        salesData = response.data; // Старый формат - массив
+      }
+      
+      console.log('Loaded sales:', salesData.length);
+      setSales(salesData);
     } catch (error) {
-      setError('Не удалось загрузить продажи');
+      console.error('Error loading sales:', error);
+      const errorMessage = error.response?.data?.message || 
+                           error.message || 
+                           'Не удалось загрузить продажи';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -52,6 +86,17 @@ const Sales = () => {
     }
   };
 
+  const handleFiltersChange = (newFilters) => {
+    console.log('Filters changed:', newFilters);
+    setFilters(newFilters);
+  };
+
+  const handleSortChange = (newSort) => {
+    console.log('Sort changed:', newSort);
+    setSort(newSort);
+  };
+
+  // Остальные методы без изменений...
   const handleAddSale = () => {
     setEditingSale(null);
     setFormData({
@@ -78,7 +123,7 @@ const Sales = () => {
     if (window.confirm('Вы уверены, что хотите удалить эту продажу?')) {
       try {
         await salesAPI.delete(saleId);
-        setSales(sales.filter(sale => sale.id !== saleId));
+        loadSales(); // Перезагружаем данные
       } catch (error) {
         console.error('Delete sale error:', error);
         setError('Не удалось удалить продажу');
@@ -88,10 +133,8 @@ const Sales = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     try {
       setError('');
-      
       const saleData = {
         productId: parseInt(formData.productId),
         branchId: parseInt(formData.branchId),
@@ -100,20 +143,20 @@ const Sales = () => {
       };
 
       console.log('Sending sale data:', saleData);
-      
+
       if (editingSale) {
         await salesAPI.update(editingSale.id, saleData);
       } else {
         await salesAPI.create(saleData);
       }
-      
+
       setShowForm(false);
       setEditingSale(null);
-      loadSales();
+      loadSales(); // Перезагружаем данные после сохранения
     } catch (error) {
       console.error('Sale error:', error);
-      const errorMessage = error.response?.data?.message || 
-                          'Не удалось оформить продажу';
+      const errorMessage = error.response?.data?.message ||
+        'Не удалось оформить продажу';
       setError(errorMessage);
     }
   };
@@ -159,6 +202,14 @@ const Sales = () => {
 
       {error && <div className="error-message">{error}</div>}
 
+      {/* Панель фильтров */}
+      <SalesFilters 
+  filters={filters}
+  onFiltersChange={handleFiltersChange}
+  sort={sort}
+  onSortChange={handleSortChange}
+/>
+
       <div className="table-container">
         <table className="data-table">
           <thead>
@@ -187,13 +238,13 @@ const Sales = () => {
                 <td>{sale.user?.login}</td>
                 <td>
                   <div className="action-buttons">
-                    <button 
+                    <button
                       onClick={() => handleEditSale(sale)}
                       className="btn-secondary"
                     >
                       Редактировать
                     </button>
-                    <button 
+                    <button
                       onClick={() => handleDeleteSale(sale.id)}
                       className="btn-danger"
                     >
@@ -220,7 +271,6 @@ const Sales = () => {
               <h2>{editingSale ? 'Редактировать продажу' : 'Оформление продажи'}</h2>
               {error && <div className="error-message">{error}</div>}
             </div>
-
             <form onSubmit={handleSubmit}>
               <div className="form-group">
                 <label>Товар:</label>
@@ -238,7 +288,6 @@ const Sales = () => {
                   ))}
                 </select>
               </div>
-
               <div className="form-group">
                 <label>Филиал:</label>
                 <select
@@ -255,7 +304,6 @@ const Sales = () => {
                   ))}
                 </select>
               </div>
-
               <div className="form-row">
                 <div className="form-group">
                   <label>Количество:</label>
@@ -268,7 +316,6 @@ const Sales = () => {
                     required
                   />
                 </div>
-
                 <div className="form-group">
                   <label>Цена за единицу ($):</label>
                   <input
@@ -282,7 +329,6 @@ const Sales = () => {
                   />
                 </div>
               </div>
-
               {formData.quantity && formData.unitPrice && (
                 <div className="sale-summary">
                   <div className="summary-item">
@@ -291,13 +337,12 @@ const Sales = () => {
                   </div>
                 </div>
               )}
-
               <div className="form-actions">
                 <button type="submit">
                   {editingSale ? 'Обновить продажу' : 'Оформить продажу'}
                 </button>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => {
                     setShowForm(false);
                     setEditingSale(null);

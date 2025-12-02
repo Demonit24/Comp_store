@@ -1,38 +1,47 @@
 import React, { useState, useEffect } from 'react';
 import { productsAPI } from '../services/api';
 
-const ProductList = ({ onEdit, refresh }) => {
+const ProductList = ({ onEdit, refresh, filters, sort }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
     loadProducts();
-  }, [refresh]);
+  }, [refresh, filters, sort]); // Добавляем filters и sort в зависимости
 
   const loadProducts = async () => {
     try {
       setLoading(true);
       setError('');
-      const response = await productsAPI.getAll({ 
-        page: 1, 
+
+      // Объединяем фильтры и сортировку в параметры запроса
+      const params = {
+        ...filters,
+        ...sort,
+        page: 1,
         limit: 100
-      });
+      };
+
+      console.log('Loading products with params:', params); // Для отладки
+
+      const response = await productsAPI.getAll(params);
       setProducts(response.data.products);
     } catch (error) {
       console.error('Error loading products:', error);
-      const errorMessage = error.response?.data?.message || 
-                          'Не удалось загрузить товары';
+      const errorMessage = error.response?.data?.message ||
+        'Не удалось загрузить товары';
       setError(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDelete = async (productId) => { // Изменили параметр на productId
+  // Остальной код без изменений...
+  const handleDelete = async (productId) => {
     if (window.confirm('Вы уверены, что хотите удалить этот товар?')) {
       try {
-        console.log('Deleting product with ID:', productId); // Добавим лог
+        console.log('Deleting product with ID:', productId);
         await productsAPI.delete(productId);
         setProducts(products.filter(product => product.id !== productId));
       } catch (error) {
@@ -50,7 +59,6 @@ const ProductList = ({ onEdit, refresh }) => {
         <h2>Список товаров</h2>
         {error && <div className="error-message">{error}</div>}
       </div>
-      
       <div className="table-container">
         <table className="data-table">
           <thead>
@@ -89,14 +97,14 @@ const ProductList = ({ onEdit, refresh }) => {
                 </td>
                 <td>
                   <div className="action-buttons">
-                    <button 
+                    <button
                       onClick={() => onEdit(product)}
                       className="btn-secondary"
                     >
                       Редактировать
                     </button>
-                    <button 
-                      onClick={() => handleDelete(product.id)} // Убедитесь, что передается product.id
+                    <button
+                      onClick={() => handleDelete(product.id)}
                       className="btn-danger"
                     >
                       Удалить
@@ -108,7 +116,6 @@ const ProductList = ({ onEdit, refresh }) => {
           </tbody>
         </table>
       </div>
-
       {products.length === 0 && !loading && (
         <div className="empty-state">
           <p>Товары не найдены</p>

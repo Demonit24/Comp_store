@@ -31,6 +31,7 @@ export const productsAPI = {
   update: (id, data) => api.put(`/products/${id}`, data),
   delete: (id) => api.delete(`/products/${id}`),
   getProfitabilityStats: () => api.get('/products/stats/profitability'),
+  getCategories: () => api.get('/products/categories'), // новый метод
 };
 
 // Branches API
@@ -48,9 +49,10 @@ export const salesAPI = {
   getAll: (params) => api.get('/sales', { params }),
   getById: (id) => api.get(`/sales/${id}`),
   create: (data) => api.post('/sales', data),
-  update: (id, data) => api.put(`/sales/${id}`, data), // Добавьте этот метод
-  delete: (id) => api.delete(`/sales/${id}`), // Добавьте этот метод
-  getStats: () => api.get('/sales/stats/profitability'),
+  update: (id, data) => api.put(`/sales/${id}`, data),
+  delete: (id) => api.delete(`/sales/${id}`),
+  getFiltersData: () => api.get('/sales/filters-data'),
+  getBranchStats: (branchId) => api.get(`/sales/branch-stats/${branchId}`), // новый метод
 };
 
 // Suppliers API
@@ -59,6 +61,15 @@ export const suppliersAPI = {
   create: (data) => api.post('/suppliers', data),
   update: (id, data) => api.put(`/suppliers/${id}`, data),
   delete: (id) => api.delete(`/suppliers/${id}`),
+};
+
+export const dashboardAPI = {
+  getStats: () => api.get('/dashboard/stats'),
+};
+
+export const reportsAPI = {
+  getEnterpriseReport: () => api.get('/reports/enterprise/pdf', { responseType: 'blob' }),
+  getBranchReport: (branchId) => api.get(`/reports/branch/pdf/${branchId}`, { responseType: 'blob' }),
 };
 
 export default api;

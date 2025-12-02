@@ -103,7 +103,8 @@ router.post('/login', async (req, res) => {
         id: user.id,
         login: user.login,
         email: user.email,
-        role: user.role
+        role: user.role,
+        branchId: user.branchId
       }
     });
   } catch (error) {
@@ -119,7 +120,8 @@ router.get('/me', authenticateToken, async (req, res) => {
       id: req.user.id,
       login: req.user.login,
       email: req.user.email,
-      role: req.user.role
+      role: req.user.role,
+      branchId: user.branchId
     }
   });
 });

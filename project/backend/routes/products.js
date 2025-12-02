@@ -4,22 +4,67 @@ import { Op } from 'sequelize';
 
 const router = express.Router();
 
-// Get all products
+// Get all products with filtering and sorting
 router.get('/', authenticateToken, async (req, res) => {
   try {
     const { Product, Supplier } = req.models;
-    const { category, page = 1, limit = 10 } = req.query;
-    
-    console.log('GET /api/products - Start');
-    console.log('Query params:', { category, page, limit });
-    
+    const { 
+      category, 
+      name, 
+      minPrice, 
+      maxPrice, 
+      inStock,
+      supplierId,
+      sortBy = 'created_at', 
+      sortOrder = 'DESC',
+      page = 1, 
+      limit = 10 
+    } = req.query;
+
+    console.log('GET /api/products - Start with filters:', req.query);
+
+    // Build where conditions
     const where = {};
+    
     if (category) where.category = category;
-    
+    if (name) where.name = { [Op.iLike]: `%${name}%` };
+    if (minPrice || maxPrice) {
+      where.sellingPrice = {};
+      if (minPrice) where.sellingPrice[Op.gte] = parseFloat(minPrice);
+      if (maxPrice) where.sellingPrice[Op.lte] = parseFloat(maxPrice);
+    }
+    if (inStock === 'true') where.quantity = { [Op.gt]: 0 };
+    if (inStock === 'false') where.quantity = { [Op.eq]: 0 };
+    if (supplierId) where.supplierId = supplierId;
+
+    // Build order
+    const order = [];
+    const sortFields = {
+      name: 'name',
+      category: 'category',
+      costPrice: 'cost_price',
+      sellingPrice: 'selling_price',
+      quantity: 'quantity',
+      createdAt: 'created_at',
+      updatedAt: 'updated_at'
+    };
+
+    if (sortFields[sortBy]) {
+      if (Array.isArray(sortFields[sortBy])) {
+        // For calculated fields, use literal SQL
+        order.push([sequelize.literal(sortFields[sortBy].join(' ')), sortOrder]);
+      } else {
+        order.push([sortFields[sortBy], sortOrder]);
+      }
+    } else {
+      order.push(['created_at', 'DESC']);
+    }
+
     const offset = (page - 1) * limit;
-    
+
     console.log('Database query conditions:', where);
-    
+    console.log('Sort order:', order);
+
     const { count, rows: products } = await Product.findAndCountAll({
       where,
       include: [{
@@ -29,11 +74,11 @@ router.get('/', authenticateToken, async (req, res) => {
       }],
       limit: parseInt(limit),
       offset: parseInt(offset),
-      order: [['created_at', 'DESC']]
+      order
     });
 
     console.log(`Found ${count} products, returning ${products.length}`);
-    
+
     // Add computed fields
     const productsWithComputed = products.map(product => {
       const productJSON = product.toJSON();
@@ -50,15 +95,33 @@ router.get('/', authenticateToken, async (req, res) => {
       currentPage: parseInt(page),
       total: count
     });
-    
+
     console.log('GET /api/products - Success');
   } catch (error) {
     console.error('GET /api/products - Error:', error);
-    console.error('Error stack:', error.stack);
-    res.status(500).json({ 
+    res.status(500).json({
       message: 'Internal server error',
-      error: error.message 
+      error: error.message
     });
+  }
+});
+
+// Get available categories for filtering
+router.get('/categories', authenticateToken, async (req, res) => {
+  try {
+    const { Product } = req.models;
+    
+    const categories = await Product.findAll({
+      attributes: ['category'],
+      group: ['category'],
+      raw: true
+    });
+
+    const categoryList = categories.map(item => item.category);
+    res.json(categoryList);
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+    res.status(500).json({ message: error.message });
   }
 });
 

@@ -119,6 +119,17 @@ const Branches = () => {
           + Добавить филиал
         </button>
       </div>
+      <div className="header-actions">
+        <button 
+          onClick={() => navigate('/branch-report')}
+          className="btn-primary"
+        >
+          📊 Создать отчет филиала
+        </button>
+        <button onClick={handleAddBranch} className="btn-primary">
+          + Добавить филиал
+        </button>
+      </div>
 
       {error && <div className="error-message">{error}</div>}
 

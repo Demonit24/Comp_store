@@ -11,6 +11,15 @@ const Navigation = () => {
     navigate('/login');
   };
 
+  const getRoleDisplayName = (role) => {
+    const roles = {
+      'admin': 'Администратор',
+      'chief_accountant': 'Главный бухгалтер',
+      'branch_manager': 'Менеджер филиала'
+    };
+    return roles[role] || role;
+  };
+
   return (
     <nav className="sidebar">
       <div className="sidebar-header">
@@ -24,34 +33,99 @@ const Navigation = () => {
         </div>
         <div className="user-details">
           <strong>{user.login}</strong>
-          <span className="user-role">{user.role}</span>
+          <span className="user-role">{getRoleDisplayName(user.role)}</span>
+          {user.branch && <span className="user-branch">{user.branch.name}</span>}
         </div>
       </div>
 
       <ul className="nav-menu">
-        <li>
-          <NavLink to="/dashboard" className={({ isActive }) => isActive ? 'active' : ''}>
-            📊 Дашборд
-          </NavLink>
-        </li>
-        <li>
-          <NavLink to="/products" className={({ isActive }) => isActive ? 'active' : ''}>
-            💻 Товары
-          </NavLink>
-        </li>
+        {/* Меню для администратора */}
+        {user.role === 'admin' && (
+          <>
+          <li>
+            <NavLink to="/admin" className={({ isActive }) => isActive ? 'active' : ''}>
+              👑 Админ-панель
+            </NavLink>
+          </li>
+          {/* <li>
+           <NavLink to="/enterprise-report" className={({ isActive }) => isActive ? 'active' : ''}>
+             📊 Отчет предприятия
+           </NavLink>
+         </li>
+         <li>
+           <NavLink to="/branch-report" className={({ isActive }) => isActive ? 'active' : ''}>
+             🏢 Отчет филиала
+           </NavLink>
+         </li>*/}
+         </>
+        )}
+
+        {/* Меню для главного бухгалтера и администратора */}
+        {(user.role === 'admin' || user.role === 'chief_accountant') && (
+          <>
+            <li>
+              <NavLink to="/chief-accountant" className={({ isActive }) => isActive ? 'active' : ''}>
+                📊 Дашборд бухгалтера
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/products" className={({ isActive }) => isActive ? 'active' : ''}>
+                💻 Товары
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/branches" className={({ isActive }) => isActive ? 'active' : ''}>
+                🏢 Филиалы
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/suppliers" className={({ isActive }) => isActive ? 'active' : ''}>
+                🚚 Поставщики
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/enterprise-report" className={({ isActive }) => isActive ? 'active' : ''}>
+                📊 Отчет предприятия
+              </NavLink>
+            </li>
+          </>
+        )}
+
+        {/* Меню для менеджера филиала */}
+        {user.role === 'branch_manager' && (
+  <>
+    <li>
+      <NavLink to="/branch-manager" className={({ isActive }) => isActive ? 'active' : ''}>
+        🏪 Панель менеджера
+      </NavLink>
+    </li>
+    <li>
+      <NavLink to="/branch-sales" className={({ isActive }) => isActive ? 'active' : ''}>
+        🛒 Продажи филиала
+      </NavLink>
+    </li>
+    <li>
+      <NavLink to="/branch-view" className={({ isActive }) => isActive ? 'active' : ''}>
+        🏢 Мой филиал
+      </NavLink>
+    </li>
+    <li>
+      <NavLink to="/products" className={({ isActive }) => isActive ? 'active' : ''}>
+        📦 Товары
+      </NavLink>
+    </li>
+    {/*<li>
+      <NavLink to="/branch-report" className={({ isActive }) => isActive ? 'active' : ''}>
+        📊 Отчет филиала
+      </NavLink>
+    </li>*/}
+  </>
+)}
+
+        {/* Общее меню для всех ролей */}
         <li>
           <NavLink to="/sales" className={({ isActive }) => isActive ? 'active' : ''}>
             🛒 Продажи
-          </NavLink>
-        </li>
-        <li>
-          <NavLink to="/branches" className={({ isActive }) => isActive ? 'active' : ''}>
-            🏢 Филиалы
-          </NavLink>
-        </li>
-        <li>
-          <NavLink to="/suppliers" className={({ isActive }) => isActive ? 'active' : ''}>
-            🚚 Поставщики
           </NavLink>
         </li>
       </ul>
