@@ -67,4 +67,9 @@ export const dashboardAPI = {
   getStats: () => api.get('/dashboard/stats'),
 };
 
+export const reportsAPI = {
+  getEnterpriseReport: () => api.get('/reports/enterprise/pdf', { responseType: 'blob' }),
+  getBranchReport: (branchId) => api.get(`/reports/branch/pdf/${branchId}`, { responseType: 'blob' }),
+};
+
 export default api;

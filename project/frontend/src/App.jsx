@@ -12,6 +12,8 @@ import Products from './pages/Products';
 import Branches from './pages/Branches';
 import Sales from './pages/Sales';
 import Suppliers from './pages/Suppliers';
+import EnterpriseReportPage from './pages/EnterpriseReportPage';
+import BranchReportPage from './pages/BranchReportPage';
 
 // Добавляем импорты для новых компонентов менеджера
 import BranchSales from './pages/BranchSales';
@@ -89,6 +91,18 @@ function App() {
             <Route path="products" element={
               <ProtectedRoute allowedRoles={['admin', 'chief_accountant', 'branch_manager']}>
                 <Products />
+              </ProtectedRoute>
+            } />
+
+            <Route path="enterprise-report" element={
+              <ProtectedRoute allowedRoles={['admin', 'chief_accountant']}>
+                <EnterpriseReportPage />
+              </ProtectedRoute>
+            } />
+
+            <Route path="branch-report" element={
+              <ProtectedRoute allowedRoles={['admin', 'chief_accountant', 'branch_manager']}>
+                <BranchReportPage />
               </ProtectedRoute>
             } />
 

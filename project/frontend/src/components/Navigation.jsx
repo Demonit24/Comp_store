@@ -41,11 +41,23 @@ const Navigation = () => {
       <ul className="nav-menu">
         {/* Меню для администратора */}
         {user.role === 'admin' && (
+          <>
           <li>
             <NavLink to="/admin" className={({ isActive }) => isActive ? 'active' : ''}>
               👑 Админ-панель
             </NavLink>
           </li>
+          {/* <li>
+           <NavLink to="/enterprise-report" className={({ isActive }) => isActive ? 'active' : ''}>
+             📊 Отчет предприятия
+           </NavLink>
+         </li>
+         <li>
+           <NavLink to="/branch-report" className={({ isActive }) => isActive ? 'active' : ''}>
+             🏢 Отчет филиала
+           </NavLink>
+         </li>*/}
+         </>
         )}
 
         {/* Меню для главного бухгалтера и администратора */}
@@ -69,6 +81,11 @@ const Navigation = () => {
             <li>
               <NavLink to="/suppliers" className={({ isActive }) => isActive ? 'active' : ''}>
                 🚚 Поставщики
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/enterprise-report" className={({ isActive }) => isActive ? 'active' : ''}>
+                📊 Отчет предприятия
               </NavLink>
             </li>
           </>
@@ -97,6 +114,11 @@ const Navigation = () => {
         📦 Товары
       </NavLink>
     </li>
+    {/*<li>
+      <NavLink to="/branch-report" className={({ isActive }) => isActive ? 'active' : ''}>
+        📊 Отчет филиала
+      </NavLink>
+    </li>*/}
   </>
 )}
 

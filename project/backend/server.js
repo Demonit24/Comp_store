@@ -9,6 +9,7 @@ import saleRoutes from './routes/sales.js';
 import supplierRoutes from './routes/suppliers.js';
 import adminRoutes from './routes/admin.js';
 import dashboardRoutes from './routes/dashboard.js';
+import reportRoutes from './routes/reports.js';
 
 dotenv.config();
 
@@ -32,6 +33,12 @@ app.use('/api/sales', saleRoutes);
 app.use('/api/suppliers', supplierRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/reports', reportRoutes);
+app.use((req, res, next) => {
+  // Устанавливаем правильную кодировку для ответов
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  next();
+});
 
 // Sync database
 const syncDatabase = async () => {

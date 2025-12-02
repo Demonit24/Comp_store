@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { salesAPI, productsAPI, branchesAPI } from '../services/api';
+import { useNavigate } from 'react-router-dom';
 
 const BranchManagerPanel = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [stats, setStats] = useState({
     todaySales: 0,
     totalRevenue: 0,
@@ -113,6 +115,27 @@ const BranchManagerPanel = () => {
       setLoading(false);
     }
   };
+  const handleExportBranchReport = async () => {
+    try {
+      setExporting(true);
+      const response = await reportsAPI.getBranchReport(user.branchId);
+      
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `branch_${user.branchId}_report_${new Date().toISOString().split('T')[0]}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error exporting branch report:', error);
+      alert('Ошибка при экспорте отчета филиала');
+    } finally {
+      setExporting(false);
+    }
+  };
 
   if (loading) {
     return <div className="loading">Загрузка данных филиала...</div>;
@@ -127,7 +150,14 @@ const BranchManagerPanel = () => {
           {error && <div className="error-message">{error}</div>}
         </div>
       </div>
-
+      <div className="header-actions">
+          <button 
+            onClick={() => navigate('/branch-report')}
+            className="btn-primary"
+          >
+            📊 Создать отчет филиала
+          </button>
+      </div>
       {/* Статистика филиала */}
       <div className="dashboard-stats">
         <div className="stat-card">
